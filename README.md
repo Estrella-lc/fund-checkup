@@ -8,8 +8,8 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-3B6D11)](LICENSE)
 [![Data](https://img.shields.io/badge/data-AkShare-BA7517)](https://akshare.akfamily.xyz/)
-[![Sample](https://img.shields.io/badge/sample-5%2C085%20funds-5F5E5A)]()
-[![AI](https://img.shields.io/badge/LLM-glm--4--flash-534AB7)]()
+[![Sample](https://img.shields.io/badge/sample-5%2C085%20funds-5F5E5A)](reports/)
+[![AI](https://img.shields.io/badge/LLM-glm--4--flash-534AB7)](reports/08_人工打分表.md)
 
 </div>
 
@@ -185,13 +185,7 @@ fund-checkup/
 | 错误模式 | 前提错配 3、逻辑反转 2、算术幻觉 2、分位误用 1 |
 | 单次生成成本 | 约 0.0002 元（glm-4-flash） |
 
-错误不是随机噪声，而是系统性模式，因此迭代方向明确：把差值放进上下文由代码算、加正负例对照、禁止默认假设数字参与计算。原始错误清单见 [`reports/07_AI评测表_待打分.md`](reports/07_AI评测表_待打分.md)，全流程复核见 [`reports/11_全流程复核与缺陷清单.md`](reports/11_全流程复核与缺陷清单.md)。
-
-## 发布为在线页面
-
-1. 把本仓库推到 GitHub（仓库名 `fund-checkup`）
-2. Settings → Pages → Source 选 `Deploy from a branch`，分支 `main`、目录 `/docs`
-3. 等 1 分钟，访问 `https://estrella-lc.github.io/fund-checkup/`，把 README 顶部 badge 的链接替换成它
+错误不是随机噪声，而是系统性模式，因此迭代方向明确：把差值放进上下文由代码算、加正负例对照、禁止默认假设数字参与计算。7 处真实错误的逐条归因见 [`reports/11_全流程复核与缺陷清单.md`](reports/11_全流程复核与缺陷清单.md)。
 
 ## 免责声明
 
@@ -199,11 +193,4 @@ fund-checkup/
 
 ---
 
-## 发布前检查
-
-- 本仓库已脱敏：README、LICENSE、演示页中的署名为占位符 `【你的姓名】`，按需替换。
-- README 顶部在线演示 badge 链接为 `estrella-lc.github.io` 占位，推送后在 GitHub Settings → Pages 开启（分支 `main`、目录 `/docs`），再把链接换成实际地址。
-- `data/raw/`、`data/processed/*.csv` 已在 `.gitignore` 中排除（体积大、可重新采集），仓库里只保留 `.gitkeep` 占位。
-- 复现流水线：`pip install -r requirements.txt` 后按 `src/step1_fetch.py` → `step8_batch_eval.py` 顺序执行；离线看效果直接打开 `docs/index.html`。
-
-MIT License © 2026 【你的姓名】
+MIT License © 2026
