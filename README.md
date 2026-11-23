@@ -4,7 +4,7 @@
 
 **用 5,085 只公募基金的公开数据，做一套可复现的产品诊断：先算出每只基金在同类中的位置，再让大模型把这个位置翻译成不同人能看懂的话。**
 
-[![在线演示](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%BC%94%E7%A4%BA-live%20demo-185FA5)](https://你的用户名.github.io/fund-checkup/)
+[![在线演示](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E6%BC%94%E7%A4%BA-live%20demo-185FA5)](https://estrella-lc.github.io/fund-checkup/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-3B6D11)](LICENSE)
 [![Data](https://img.shields.io/badge/data-AkShare-BA7517)](https://akshare.akfamily.xyz/)
@@ -96,7 +96,7 @@
 可切换 6 只对照基金与 15% / 30% 两档风险承受线，页面上的每个数字都由 `card.py` 现算并固化成 `docs/data.js`。
 
 ```bash
-git clone https://github.com/你的用户名/fund-checkup.git
+git clone https://github.com/Estrella-lc/fund-checkup.git
 cd fund-checkup
 pip install -r requirements.txt
 
@@ -191,7 +191,7 @@ fund-checkup/
 
 1. 把本仓库推到 GitHub（仓库名 `fund-checkup`）
 2. Settings → Pages → Source 选 `Deploy from a branch`，分支 `main`、目录 `/docs`
-3. 等 1 分钟，访问 `https://你的用户名.github.io/fund-checkup/`，把 README 顶部 badge 的链接替换成它
+3. 等 1 分钟，访问 `https://estrella-lc.github.io/fund-checkup/`，把 README 顶部 badge 的链接替换成它
 
 ## 免责声明
 
@@ -202,7 +202,7 @@ fund-checkup/
 ## 发布前检查
 
 - 本仓库已脱敏：README、LICENSE、演示页中的署名为占位符 `【你的姓名】`，按需替换。
-- README 顶部在线演示 badge 链接为 `你的用户名.github.io` 占位，推送后在 GitHub Settings → Pages 开启（分支 `main`、目录 `/docs`），再把链接换成实际地址。
+- README 顶部在线演示 badge 链接为 `estrella-lc.github.io` 占位，推送后在 GitHub Settings → Pages 开启（分支 `main`、目录 `/docs`），再把链接换成实际地址。
 - `data/raw/`、`data/processed/*.csv` 已在 `.gitignore` 中排除（体积大、可重新采集），仓库里只保留 `.gitkeep` 占位。
 - 复现流水线：`pip install -r requirements.txt` 后按 `src/step1_fetch.py` → `step8_batch_eval.py` 顺序执行；离线看效果直接打开 `docs/index.html`。
 
