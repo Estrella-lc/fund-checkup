@@ -1,0 +1,21 @@
+# 数据文件不进 git（体积大、可由脚本重新采集）
+data/raw/
+data/processed/*.csv
+
+# Python
+__pycache__/
+.venv/
+*.pyc
+
+# 本地环境变量（LLM Key 等，绝不提交）
+.env
+.env.*
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 分析产物按需提交：图表与演示页资源要进 git（作品集展示需要）
+.ipynb_checkpoints/

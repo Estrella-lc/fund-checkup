@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>基金产品体检系统 · 公开数据驱动的诊断与 AI 解读</title>
+<style>
+  :root{
+    --ink:#1b1b1b; --muted:#6b6b6b; --faint:#9a9a9a;
+    --line:#e7e7e7; --panel:#fafafa; --bg:#fff;
+    --accent:#185FA5; --accent-soft:#E6F1FB;
+    --warn:#A32D2D; --warn-soft:#FCEBEB;
+    --ok:#3B6D11; --ok-soft:#EAF3DE;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:15px; line-height:1.7; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:0 24px}
+  header.hero{padding:72px 0 56px; border-bottom:1px solid var(--line)}
+  .eyebrow{font-size:13px; letter-spacing:.08em; color:var(--accent); margin:0 0 14px}
+  h1{font-size:34px; line-height:1.3; margin:0 0 16px; font-weight:600; letter-spacing:-.01em}
+  .lede{font-size:17px; color:var(--muted); max-width:640px; margin:0 0 32px}
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:8px}
+  .stat{border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; background:var(--panel)}
+  .stat b{display:block; font-size:26px; font-weight:600; letter-spacing:-.02em; margin-bottom:4px}
+  .stat span{font-size:13px; color:var(--muted); display:block; line-height:1.5}
+  .meta{margin-top:22px; font-size:13px; color:var(--faint)}
+  section{padding:64px 0; border-bottom:1px solid var(--line)}
+  h2{font-size:22px; margin:0 0 8px; font-weight:600; letter-spacing:-.01em}
+  .sub{color:var(--muted); font-size:14px; margin:0 0 32px; max-width:680px}
+  h3{font-size:15px; font-weight:600; margin:28px 0 10px}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px}
+  .chip{
+    border:1px solid var(--line); background:#fff; color:var(--ink);
+    padding:8px 14px; border-radius:999px; font-size:13px; cursor:pointer;
+    font-family:inherit; transition:border-color .15s, background .15s;
+  }
+  .chip:hover{border-color:#c9c9c9}
+  .chip[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent)}
+
+  .card{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .card-head{padding:22px 24px 18px; border-bottom:1px solid var(--line); background:var(--panel)}
+  .card-head .name{font-size:19px; font-weight:600; margin:0 0 6px}
+  .card-head .facts{font-size:13px; color:var(--muted)}
+  .card-head .facts i{font-style:normal; color:var(--faint); margin:0 8px}
+  .score{float:right; text-align:right}
+  .score b{font-size:26px; font-weight:600; display:block; line-height:1.1}
+  .score span{font-size:12px; color:var(--faint)}
+
+  .card-body{padding:8px 24px 24px}
+  .dim{padding:16px 0; border-bottom:1px dashed var(--line)}
+  .dim:last-child{border-bottom:none}
+  .dim-title{font-size:13px; font-weight:600; color:var(--accent); margin-bottom:10px}
+  .row{display:grid; grid-template-columns:150px 1fr 108px; gap:12px; align-items:center; padding:6px 0}
+  .row .label{font-size:13px; color:var(--muted)}
+  .row .val{font-variant-numeric:tabular-nums; font-size:14px; font-weight:500}
+  .bar{position:relative; height:6px; border-radius:3px; background:#efefef; overflow:hidden; margin-top:6px}
+  .bar i{position:absolute; left:0; top:0; bottom:0; border-radius:3px; background:var(--accent); opacity:.75}
+  .row .rank{font-size:12px; color:var(--faint); text-align:right; font-variant-numeric:tabular-nums}
+  .txt-row{font-size:13px; color:var(--muted); padding:4px 0}
+  .txt-row b{color:var(--ink); font-weight:500}
+
+  .verdicts{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:20px}
+  .verdict{border:1px solid var(--line); border-radius:10px; padding:14px 16px; background:#fff}
+  .verdict .k{font-size:12px; color:var(--faint); margin-bottom:6px}
+  .verdict .v{font-size:14px; font-weight:500; line-height:1.55}
+  .verdict.warn{border-color:#e8bdbd; background:var(--warn-soft)}
+  .verdict.warn .v{color:var(--warn)}
+  .verdict.ok{border-color:#c9ddaa; background:var(--ok-soft)}
+  .verdict.ok .v{color:var(--ok)}
+  .verdict .note{font-size:12px; color:var(--muted); margin-top:6px}
+
+  .gaps{margin-top:18px; font-size:12px; color:var(--faint)}
+  .gaps span{display:inline-block; border:1px solid var(--line); border-radius:999px; padding:3px 10px; margin:4px 6px 0 0}
+
+  .findings{display:grid; gap:20px}
+  .finding{border-left:3px solid var(--accent); padding:2px 0 2px 18px}
+  .finding b{display:block; font-size:15px; margin-bottom:4px}
+  .finding p{margin:0; color:var(--muted); font-size:14px}
+  figure{margin:28px 0 0}
+  figure img{width:100%; border:1px solid var(--line); border-radius:var(--radius); display:block}
+  figcaption{font-size:12px; color:var(--faint); margin-top:10px}
+
+  .layers{display:grid; gap:10px; margin-top:8px}
+  .layer{display:grid; grid-template-columns:96px 1fr; gap:16px; align-items:start;
+    border:1px solid var(--line); border-radius:10px; padding:14px 16px}
+  .layer b{font-size:13px; color:var(--accent)}
+  .layer p{margin:0; font-size:14px; color:var(--muted)}
+  .layer p strong{color:var(--ink); font-weight:500}
+
+  details{border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-top:16px; background:var(--panel)}
+  summary{cursor:pointer; font-size:14px; font-weight:500}
+  details .body{margin-top:14px; font-size:14px; color:#333}
+  details h4{font-size:14px; margin:18px 0 6px; color:var(--accent)}
+  details p{margin:0 0 10px}
+  details blockquote{margin:0 0 10px; padding-left:14px; border-left:2px solid var(--line); color:var(--muted)}
+
+  ul.plain{padding-left:18px; color:var(--muted); font-size:14px}
+  ul.plain li{margin-bottom:8px}
+  ul.plain b{color:var(--ink); font-weight:500}
+  footer{padding:48px 0 64px; font-size:12px; color:var(--faint); line-height:1.9}
+  footer a{color:var(--accent); text-decoration:none}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px;
+    background:#f2f2f2; padding:1px 5px; border-radius:4px}
+  @media(max-width:720px){
+    .stats{grid-template-columns:1fr}
+    .verdicts{grid-template-columns:1fr}
+    .row{grid-template-columns:120px 1fr; }
+    .row .rank{grid-column:2; text-align:left}
+    h1{font-size:26px}
+    .score{float:none; text-align:left; margin-top:12px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">公开数据 · 个人研究项目</p>
+  <h1>基金产品体检系统</h1>
+  <p class="lede">
+    用全市场 5085 只公募基金的公开净值与费率数据，做一套可复现的产品诊断：
+    先算出每只基金在同类中的位置，再让大模型把这个位置翻译成不同人能看懂的话。
+  </p>
+  <div class="stats">
+    <div class="stat"><b>5,085</b><span>只基金入样（主动 4109 / 被动 976）<br>近三年净值区间</span></div>
+    <div class="stat"><b>13.07pp</b><span>高费低效组与其余样本的费后年化差距<br>而费率只解释其中 0.17pp</span></div>
+    <div class="stat"><b>7 / 30</b><span>AI 生成报告的事实错误率 23%<br>据此把比较与差值全部下沉到代码</span></div>
+  </div>
+  <p class="meta">数据来源 AkShare（底层为天天基金网等公开数据）· 快照 2026-11-10 · 仅信息性分析，不构成投资建议</p>
+</div></header>
+
+<section><div class="wrap">
+  <h2>交互演示：一张数据卡</h2>
+  <p class="sub">
+    下面每个数字都由 <code>src/card.py</code> 从 5085 只基金中现算，不是人工填进页面的。
+    切换基金与风险承受线，可以看到同一只产品在不同人眼里的结论差异。
+  </p>
+  <div class="chips" id="fundChips"></div>
+  <div class="chips" id="riskChips"></div>
+  <div class="card" id="cardRoot"></div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>三个主要发现</h2>
+  <p class="sub">都经过敏感性与口径检验；括号里是复核方式。</p>
+  <div class="findings">
+    <div class="finding">
+      <b>一、"高费低效"的真实成因不是费率</b>
+      <p>
+        1097 只产品（占样本 21.6%）同时满足「综合费率 ≥ 行业标准档」与「卡玛处于组内后 25%」。
+        它们费后年化比其余样本低 13.07 个百分点，但综合费率只高出 0.17 个百分点——
+        费率仅能解释差距的 1.3%。把结论写成"高费率导致收益差"是错误归因。
+      </p>
+    </div>
+    <div class="finding">
+      <b>二、它们是"在错误时点卖出的赛道产品"</b>
+      <p>
+        该群体相对全样本超配白酒消费 3.42×、医药医疗 2.66×、新能源 2.58×，
+        却低配科技半导体 0.72×。集中暴露于特定赛道并承受了赛道回撤，
+        是比"费率贵"更贴近事实的解释。
+      </p>
+    </div>
+    <div class="finding">
+      <b>三、结论只能落在群体上，不能落在个体榜单上</b>
+      <p>
+        换一套权重后，"最差 100 只"名单只剩 54–56% 重合。因此本项目不出"十大最差基金"，
+        只描述群体画像——这是权重敏感性检验直接给出的产品设计约束。
+      </p>
+    </div>
+  </div>
+  <figure>
+    <img src="assets/fig6.png" alt="高费低效组与其余样本的指标对比">
+    <figcaption>图 1｜高费低效组 vs 其余样本：费率差 0.17pp，费后年化差 13.07pp。</figcaption>
+  </figure>
+  <figure>
+    <img src="assets/fig7.png" alt="高费低效组的赛道主题超配倍数">
+    <figcaption>图 2｜主题超配倍数：白酒 3.42×、医药 2.66×、新能源 2.58×，科技 0.72×。</figcaption>
+  </figure>
+</div></section>
+
+<section><div class="wrap">
+  <h2>方法：确定性计算与非确定性生成的边界</h2>
+  <p class="sub">
+    这套系统最关键的设计不是用了大模型，而是<strong>规定大模型不许碰算术</strong>。
+    30 条抽样测试中 7 条出现事实错误，没有一条是编造外部数据——全部是模型在给定数字上算错或理解反。
+  </p>
+  <div class="layers">
+    <div class="layer"><b>L0 采集</b><p><strong>akshare</strong> 拉全市场基金列表、份额、评级、经理、净值、费率；去重份额、剔除场内。（6564 个净值文件）</p></div>
+    <div class="layer"><b>L2 指标</b><p><strong>11 个候选指标 → 相关性审计 → 7 个独立信号</strong>：年化、超额、费后年化三者 Spearman 相关 1.00，合并为「综合收益」，避免重复计权。组内分位打分。</p></div>
+    <div class="layer"><b>L3 画像</b><p><strong>K-Means 聚类与硬规则分离</strong>：先聚类看自然分组，再用独立规则圈"高费低效"，避免用自己打的标签证明自己（循环论证）。</p></div>
+    <div class="layer"><b>L4 表达</b><p><strong>代码先出数据卡</strong>（含同类分位、排名、"是否超出承受线"等结论字段），模型只做语言转换，只准引用卡片里的原话。</p></div>
+    <div class="layer"><b>L5 评测</b><p><strong>10 只 × 3 类需求 = 30 条样本</strong>，自动预检（合规词／免责声明／数字溯源）＋人工复核，错误按类型归档后回写 Prompt。</p></div>
+  </div>
+  <details>
+    <summary>看一段真实输出：同一只基金的四层表达（012414 招商中证白酒指数C）</summary>
+    <div class="body">
+      <h4>L0 · 一句话</h4>
+      <p>一只跟踪中证白酒指数的被动型基金，近三年净值年化 −18.42%，在 976 只同类基金中处于末位区间。</p>
+      <h4>L1 · 小白版（节选）</h4>
+      <blockquote>
+        它不挑股票，只做一件事：把中证白酒指数里的公司按比例买一遍。所以白酒行业整体涨，它跟着涨；行业跌，它跟着跌。<br><br>
+        过去三年它平均每年亏 18.42%，最多的一次从高点跌下来亏了 49.45%（这就是"最大回撤"——历史上最多曾经亏多少）。投 10 万，最难受的时候账面上只剩 5 万出头。
+      </blockquote>
+      <h4>L2 · 专业版（节选）</h4>
+      <blockquote>
+        最大回撤 49.45%，同类分位 0.5，即优于同类产品的比例不足 1%；对以控制回撤为首要目标的资金，该产品的持有体验与目标明显错配。<br><br>
+        综合费率 1.30%（管理 1.0%＋托管 0.2%＋销售服务 0.1%），同类排序 866/976；费用对年化的侵蚀为 1.30 个百分点。
+      </blockquote>
+      <h4>L3 · 你的情况（承受线 15%）</h4>
+      <blockquote>最大回撤 49.45% 超出你 15% 的承受线，超出 34.45 个百分点——这句由代码算好，模型只准原样引用。</blockquote>
+      <h4>④ 持仓集中度</h4>
+      <p>【信息不足，暂不评估】缺少重仓股、行业分布与换手率数据，因此不对其实际集中度下任何结论。</p>
+    </div>
+  </details>
+</div></section>
+
+<section><div class="wrap">
+  <h2>已知局限</h2>
+  <p class="sub">写清楚"这套东西不能回答什么"，比多堆十个指标更重要。</p>
+  <ul class="plain">
+    <li><b>不含持仓数据。</b>无重仓股、行业分布、换手率，因此不做任何"选股能力"判断，只做净值与费率维度的横向筛查。</li>
+    <li><b>不含跟踪误差。</b>指数基金的跟踪质量无法直接评估。</li>
+    <li><b>只有近三年单一区间。</b>无分年度收益，因此无法验证"超额是集中在某一年行情，还是跨年稳定"——而这恰恰是区分运气与能力的关键证据。</li>
+    <li><b>规模字段覆盖 60.7%</b>（3085/5085），规模相关判断只在有数据样本内进行。</li>
+    <li><b>未计算夏普比率</b>，风险调整收益以卡玛（年化收益/最大回撤）替代；卡玛只用回撤做分母，不惩罚上行波动，口径需注明。</li>
+    <li><b>聚类轮廓系数 0.27</b>，画像标签作描述性分组，不宣称显著结构。</li>
+    <li><b>超额收益口径</b>为「年化收益 − 同组中位数」（同类相对），<strong>不是</strong>相对业绩比较基准的超额。</li>
+  </ul>
+</div></section>
+
+<footer><div class="wrap">
+  个人数据分析与产品设计项目 · 【你的姓名】 · 2026<br>
+  数据来源 AkShare（开源库，底层为天天基金网等公开数据），快照 2026-11-10；所有指标由本项目脚本独立计算。<br>
+  本页为信息性分析展示，不构成投资建议，不承诺收益，历史业绩不代表未来表现。
+</div></footer>
+
+<script src="data.js"></script>
+<script>
+(function(){
+  var state = {fund: 0, risk: "15"};
+
+  var DIM_ORDER = ["①风险调整后收益","②回撤与波动","③策略一致性","④持仓集中度","⑤经理_or_跟踪","⑥规模与流动性","⑦费率"];
+  var DIM_NAME = {
+    "①风险调整后收益":"① 风险调整后收益","②回撤与波动":"② 回撤与波动",
+    "③策略一致性":"③ 策略一致性","④持仓集中度":"④ 持仓集中度",
+    "⑤经理_or_跟踪":"⑤ 经理 / 跟踪误差","⑥规模与流动性":"⑥ 规模与流动性","⑦费率":"⑦ 费率"
+  };
+  var KEY_LABEL = {
+    "基金类型":"产品类型","业绩比较基准":"业绩比较基准","投资策略":"投资策略",
+    "判断能力":"能判断到什么程度","数据状态":"数据说明","处理方式":"处理方式",
+    "基金经理":"基金经理","基金公司":"基金公司",
+    "管理费_pct":"管理费","托管费_pct":"托管费","销售服务费_pct":"销售服务费",
+    "赎回费1年_pct":"持有一年赎回费"
+  };
+
+  function el(tag, cls, html){
+    var d = document.createElement(tag);
+    if(cls) d.className = cls;
+    if(html != null) d.innerHTML = html;
+    return d;
+  }
+  function esc(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+  function fmt(v, unit){
+    if(v === null || v === undefined) return "—";
+    var n = (typeof v === "number") ? (Math.abs(v) >= 100 ? v.toFixed(1) : v.toFixed(2)) : v;
+    return n + (unit || "");
+  }
+
+  function renderChips(){
+    var fc = document.getElementById("fundChips");
+    fc.innerHTML = "";
+    window.CARDS.forEach(function(item, i){
+      var c = item.variants[window.RISK_LINES[0]];
+      var b = el("button","chip");
+      b.type = "button";
+      b.textContent = c["基金名称"].length > 14 ? c["基金名称"].slice(0,13)+"…" : c["基金名称"];
+      b.setAttribute("aria-pressed", i === state.fund ? "true" : "false");
+      b.onclick = function(){ state.fund = i; renderChips(); renderCard(); };
+      fc.appendChild(b);
+    });
+    var rc = document.getElementById("riskChips");
+    rc.innerHTML = "";
+    [{k:"15",t:"风险承受线 15%（稳健型）"},{k:"30",t:"风险承受线 30%（进取型）"}].forEach(function(o){
+      var b = el("button","chip");
+      b.type = "button"; b.textContent = o.t;
+      b.setAttribute("aria-pressed", state.risk === o.k ? "true" : "false");
+      b.onclick = function(){ state.risk = o.k; renderChips(); renderCard(); };
+      rc.appendChild(b);
+    });
+  }
+
+  function renderCard(){
+    var root = document.getElementById("cardRoot");
+    var item = window.CARDS[state.fund];
+    var c = item.variants[state.risk];
+    root.innerHTML = "";
+
+    var head = el("div","card-head");
+    var score = el("div","score", "<b>"+ (c["体检总分"] ?? "—") +"</b><span>体检总分 / 100</span>");
+    head.appendChild(score);
+    head.appendChild(el("p","name", esc(c["基金名称"]) + "　<span style='font-size:13px;color:#9a9a9a'>" + esc(c["基金代码"]) + "</span>"));
+    head.appendChild(el("p","facts",
+      esc(c["基金类型"]) + " <i>·</i> 同类 " + c["同类样本量"] + " 只 <i>·</i> 成立 " + esc(c["成立时间"]) +
+      " <i>·</i> 画像「" + esc(c["画像标签"]) + "」<i>·</i> " + esc(c["统计区间"])));
+    root.appendChild(head);
+
+    var body = el("div","card-body");
+
+    DIM_ORDER.forEach(function(key){
+      var dim = c["七维度"][key];
+      if(!dim) return;
+      var block = el("div","dim");
+      block.appendChild(el("div","dim-title", DIM_NAME[key]));
+      Object.keys(dim).forEach(function(k){
+        var v = dim[k];
+        if(v && typeof v === "object" && "本基金" in v){
+          var row = el("div","row");
+          var left = el("div");
+          left.appendChild(el("div","label", esc(v["指标"])));
+          row.appendChild(left);
+          var mid = el("div");
+          mid.appendChild(el("div","val", fmt(v["本基金"], v["单位"])));
+          var p = v["同类分位"];
+          if(p !== null && p !== undefined){
+            var bar = el("div","bar");
+            var fill = el("i");
+            fill.style.width = Math.max(1.5, Math.min(100, p)) + "%";
+            bar.appendChild(fill);
+            mid.appendChild(bar);
+          }
+          row.appendChild(mid);
+          var rank = v["同类排名"];
+          var pr = (p === null || p === undefined) ? "—" :
+            "分位 " + p + (rank ? "　" + rank : "");
+          row.appendChild(el("div","rank", pr));
+          block.appendChild(row);
+        } else if(v !== null && v !== undefined){
+          var t = el("div","txt-row");
+          var lab = KEY_LABEL[k] || k;
+          var out = (typeof v === "number" && /_pct$/.test(k)) ? (v + "%") : v;
+          t.innerHTML = "<b>" + esc(lab) + "</b>：" + esc(out);
+          block.appendChild(t);
+        }
+      });
+      body.appendChild(block);
+    });
+
+    var cs = c["结论字段"] || {};
+    var vw = el("div","verdicts");
+    if(cs["承受线对照"]){
+      var r = cs["承受线对照"];
+      var cls = r["是否超出承受线"] === "是" ? "verdict warn" : "verdict ok";
+      var v1 = el("div", cls);
+      v1.appendChild(el("div","k","你的承受线与它的历史回撤"));
+      v1.appendChild(el("div","v", esc(r["允许的表述"])));
+      v1.appendChild(el("div","note","该结论由代码计算，模型只准原样引用"));
+      vw.appendChild(v1);
+    }
+    if(cs["高费低效标记"] !== undefined){
+      var v2 = el("div", cs["高费低效标记"] ? "verdict warn" : "verdict ok");
+      v2.appendChild(el("div","k","是否属于「高费低效」群体"));
+      v2.appendChild(el("div","v", cs["高费低效标记"] ? "是——费率处于高位且风险调整后收益处于同类后 25%" : "否"));
+      v2.appendChild(el("div","note", esc(cs["判定口径"] || "")));
+      vw.appendChild(v2);
+    }
+    if(cs["费用侵蚀说明"]){
+      var v3 = el("div","verdict");
+      v3.appendChild(el("div","k","费用对收益的侵蚀"));
+      v3.appendChild(el("div","v", esc(cs["费用侵蚀说明"])));
+      vw.appendChild(v3);
+    }
+    if(cs["收益可解释性"]){
+      var v4 = el("div","verdict");
+      v4.appendChild(el("div","k","超额收益方向与可解释性"));
+      v4.appendChild(el("div","v", esc(cs["收益可解释性"])));
+      v4.appendChild(el("div","note", esc(cs["超额收益口径"] || "")));
+      vw.appendChild(v4);
+    }
+    body.appendChild(vw);
+
+    var gaps = el("div","gaps");
+    gaps.innerHTML = "数据缺口（这些维度不评估，而不是猜）：";
+    (c["数据缺口"] || []).forEach(function(g){
+      gaps.appendChild(el("span", null, esc(g)));
+    });
+    body.appendChild(gaps);
+
+    root.appendChild(body);
+  }
+
+  if(window.CARDS && window.CARDS.length){
+    renderChips();
+    renderCard();
+  } else {
+    document.getElementById("cardRoot").innerHTML =
+      "<div style='padding:24px;color:#9a9a9a'>数据未加载（请通过本地服务器打开，或直接访问线上演示页）。</div>";
+  }
+})();
+</script>
+</body>
+</html>
